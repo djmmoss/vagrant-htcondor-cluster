@@ -1,7 +1,15 @@
-class {"r":}
+#class {"r":}
 
-r::installp{"xts":}
-r::installp{"Rcpp":}
+#r::installp{"xts":}
+#r::installp{"Rcpp":}
+include stdlib
 
-class {"htcondor":
-    is_worker => true}
+resource { "firewall" :
+    purge => true
+}
+
+class {"htcondor" :
+    is_worker => true,
+    managers => ["10.0.0.2"],
+    worker_nodes => ["10.0.0.*"]
+}

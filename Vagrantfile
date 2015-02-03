@@ -1,9 +1,9 @@
 Vagrant.configure("2") do |config|
     # Number of Slaves
-    numSlaves = 2
+    numSlaves = 1
 
     # Private Network Address
-    ipAddressPrefix = "10.0.0.2"
+    ipAddressPrefix = "10.1.0.2"
     
     # Default Box
     config.vm.box = "centos6_4_puppet"
