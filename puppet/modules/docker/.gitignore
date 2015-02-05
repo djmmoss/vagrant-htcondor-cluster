@@ -1,0 +1,8 @@
+pkg
+spec/fixtures
+.bundle/
+.vagrant
+.yardoc
+doc
+*.swp
+.ruby-version
