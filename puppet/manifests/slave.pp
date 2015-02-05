@@ -1,15 +1,27 @@
-#class {"r":}
+class {"r":}
 
 #r::installp{"xts":}
 #r::installp{"Rcpp":}
 include stdlib
 
-resource { "firewall" :
-    purge => true
+stage { "pre":
+  before => Stage["main"],
+  }
+
+service { "iptables": 
+    ensure => "stopped",
 }
 
-class {"htcondor" :
-    is_worker => true,
-    managers => ["10.0.0.2"],
-    worker_nodes => ["10.0.0.*"]
+class { "docker" :
 }
+
+
+#class {"htcondor" :
+    #managers => ["10.2.0.2"],
+    #worker_nodes => ["10.2.0.*"],
+    #stage => 'pre'
+#}
+
+#exec { "startd":
+    #command => "/usr/sbin/condor_startd",
+#}

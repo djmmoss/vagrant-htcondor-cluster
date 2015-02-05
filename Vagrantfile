@@ -3,18 +3,18 @@ Vagrant.configure("2") do |config|
     numSlaves = 1
 
     # Private Network Address
-    ipAddressPrefix = "10.1.0.2"
+    ipAddressPrefix = "10.2.0.2"
     
     # Default Box
-    config.vm.box = "centos6_4_puppet"
-    config.vm.box_url = "http://developer.nrel.gov/downloads/vagrant-boxes/CentOS-6.4-x86_64-v20131103.box"
+    config.vm.box = "puppetlabs/centos-6.5-64-puppet"
 
     # Master Box
     # This Box contains the web client and communicates to the slave machines running HTCondor
     config.vm.define "master" do |master|
         # Forward Web Port
         master.vm.network :forwarded_port, host: 3000, guest:80
-        
+        master.vm.hostname = "master"
+
         # Set Private Network
         master.vm.network :private_network, ip: ipAddressPrefix
 
@@ -38,6 +38,7 @@ Vagrant.configure("2") do |config|
         config.vm.define slaveName do |slave|
             # Set Private Network
             slave.vm.network :private_network, ip: ipAddressPrefix + num.to_s
+            slave.vm.hostname = "slave" + num.to_s
 
             # Set Virtual Box Name
             slave.vm.provider "virtualbox" do |v|

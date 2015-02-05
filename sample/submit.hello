@@ -1,0 +1,7 @@
+Executable	=	hello
+Universe	=	standard
+Output		=	hello.out
+Log		=	hello.log
+use_X509userproxy = 	false
+request_memory	=	10
+Queue
