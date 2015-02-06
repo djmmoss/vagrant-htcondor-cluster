@@ -45,7 +45,6 @@ Vagrant.configure("2") do |config|
                 v.name = "Backtest Slave " + num.to_s
             end
         
-
             # Provision Slaves with Puppet
             slave.vm.provision "puppet" do |puppet|
                 puppet.manifests_path = "puppet/manifests"
