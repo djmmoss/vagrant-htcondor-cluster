@@ -1,36 +1,36 @@
 include stdlib
 include epel
 
-stage { "pre":
-  before => Stage["main"],
-  }
-
-package { "device-mapper-libs":
-    ensure => latest,
+file { "/etc/environment":
+    content => inline_template("http_proxy=http://web-cache.usyd.edu.au:8080")
 }
 
 service { "iptables": 
     ensure => "stopped",
 }
 
-class { "docker" :
-    tcp_bind    => 'tcp://127.0.0.1:4243',
-    socket_bind => 'unix:///var/run/docker.sock',
+class {"condor":}
+
+class condor {
+    $major_release = regsubst($::operatingsystemrelease, '^(\d+)\.\d+$', '\1')
+
+    yumrepo { 'htcondor-stable':
+        descr => "HTCondor Stable RPM Repository for Redhat Enterprise Linux ${major_release}",
+        baseurl => "http://research.cs.wisc.edu/htcondor/yum/stable/rhel${major_release}",
+        enabled => 1,
+        gpgcheck => 0,
+        priority => "99",
+        exclude => 'condor.i386, condor.i686',
+        before => [Package['condor']],
+    }
+    package { "condor":
+        ensure => present,
+        before => Exec['condor-configure']
     }
 
-docker::image{ "jimwhite/condor-centos6" :}
+    exec { "condor-configure" :
+        command => "/usr/sbin/condor_configure --prefix=/usr --type=submit,execute --central-manager=master"
+    }
 
-docker::run { "condor1" :
-    image => "jimwhite/condor-centos6",
-    hostname => "slave1.1"
 }
 
-#class {"htcondor" :
-    #managers => ["10.2.0.2"],
-    #worker_nodes => ["10.2.0.*"],
-    #stage => 'pre'
-#}
-
-#exec { "startd":
-    #command => "/usr/sbin/condor_startd",
-#}
