@@ -1,0 +1,15 @@
+########################################################
+##
+## hello_r 
+##
+## Simple condor job description file
+##
+########################################################
+
+executable = /bin/hostname 
+universe = vanilla
+output = example1.$(cluster).$(process).out
+error =  example1.$(cluster).$(process).err
+log =    example1.$(cluster).$(process).log
+queue 4
+

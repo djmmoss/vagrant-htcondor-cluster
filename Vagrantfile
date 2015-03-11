@@ -1,56 +1,63 @@
-Vagrant.configure("2") do |config|
-    # Number of Slaves
-    numSlaves = 1
+#Define the list of machines
+slurm_cluster = {
+    :controller => {
+        :hostname => "controller",
+        :ipaddress => "10.10.10.3",
+        :type => "controller"
+    },
+    :server1 => {
+        :hostname => "server1",
+        :ipaddress => "10.10.10.4",
+        :type => "node"
+    },
+    :server2 => {
+        :hostname => "server2",
+        :ipaddress => "10.10.10.5",
+        :type => "node"
+    }
+}
 
-    # Private Network Address
-    ipAddressPrefix = "10.2.0.2"
-    
-    # Default Box
-    config.vm.box = "puppetlabs/centos-6.5-64-puppet"
+#Provisioning inline script
+$script = <<SCRIPT
+echo "10.10.10.3    controller" >> /etc/hosts
+echo "10.10.10.4    server1" >> /etc/hosts
+echo "10.10.10.5    server2" >> /etc/hosts
+SCRIPT
 
-    # Master Box
-    # This Box contains the web client and communicates to the slave machines running HTCondor
-    config.vm.define "master" do |master|
-        # Forward Web Port
-        master.vm.network :forwarded_port, host: 3000, guest:80
-        master.vm.hostname = "master"
+Vagrant.configure("2") do |global_config|
+    slurm_cluster.each_pair do |name, options|
+        global_config.vm.define name do |config|
+            #VM configurations
+            config.vm.box = "puppetlabs/centos-6.5-64-puppet"
+            config.vm.hostname = "#{name}"
+            config.vm.network :private_network, ip: options[:ipaddress]
+            config.vm.synced_folder ".", "/vagrant", type: "nfs"
 
-        # Set Private Network
-        master.vm.network :private_network, ip: ipAddressPrefix
-
-        # Set Virtual Box Name
-        master.vm.provider "virtualbox" do |v|
-            v.name = "Backtest Master"
-        end
-
-        # Provision with Puppet
-        master.vm.provision "puppet" do |puppet|
-            puppet.manifests_path = "puppet/manifests"
-            puppet.module_path = "puppet/modules"
-            puppet.manifest_file = "master.pp"
-        end
-    end
-
-    # Slave Boxes
-    # This Boxes do all of the work.
-    1.upto(numSlaves) do |num|
-        slaveName = ("slave" + num.to_s).to_sym
-        config.vm.define slaveName do |slave|
-            # Set Private Network
-            slave.vm.network :private_network, ip: ipAddressPrefix + num.to_s
-            slave.vm.hostname = "slave" + num.to_s
-
-            # Set Virtual Box Name
-            slave.vm.provider "virtualbox" do |v|
-                v.name = "Backtest Slave " + num.to_s
+            #VM specifications
+            config.vm.provider :virtualbox do |v|
+                v.customize ["modifyvm", :id, "--memory", "512"]
             end
-        
-            # Provision Slaves with Puppet
-            slave.vm.provision "puppet" do |puppet|
-                puppet.manifests_path = "puppet/manifests"
-                puppet.module_path = "puppet/modules"
-                puppet.manifest_file = "slave.pp"
+
+            #VM provisioning
+            config.vm.provision :shell,
+                :inline => $script
+
+            if options[:type] == "controller"
+                config.vm.network "forwarded_port", guest: 80, host: 3000
+                config.vm.provision :puppet do |puppet|
+                    puppet.manifest_file  = "controller.pp"
+                    puppet.manifests_path = "puppet/manifests"
+                    puppet.module_path = "puppet/modules"
+                end
+            else
+                config.vm.provision :puppet do |puppet|
+                    puppet.manifest_file  = "node.pp"
+                    puppet.manifests_path = "puppet/manifests"
+                    puppet.module_path = "puppet/modules"
+                end
             end
+
+
         end
     end
 end

@@ -1,0 +1,17 @@
+########################################################
+##
+## hello_r 
+##
+## Simple condor job description file
+##
+########################################################
+
+executable = hello.R 
+universe = vanilla
+should_transfer_files = true
+run_as_owner = true
+output = hello_r.$(cluster).$(process).out
+error =  hello_r.$(cluster).$(process).err
+log =    hello_r.$(cluster).$(process).log
+queue 4
+

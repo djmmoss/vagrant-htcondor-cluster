@@ -1,0 +1,12 @@
+Series: USAccDeaths 
+ARIMA(0,1,1)(0,1,1)[12]                    
+
+Coefficients:
+          ma1     sma1
+      -0.4303  -0.5528
+s.e.   0.1228   0.1784
+
+sigma^2 estimated as 99347:  log likelihood=-425.44
+AIC=856.88   AICc=857.32   BIC=863.11
+null device 
+          1 
